@@ -1,0 +1,22 @@
+<annotation>
+  <folder>/home/apurvnit/datasets/gestures_test/Marcel-Train/A</folder>
+  <filename>A-train0806.ppm</filename>
+  <segmented>0</segmented>
+  <size>
+    <width>68</width>
+    <height>80</height>
+    <depth>3</depth>
+  </size>
+  <object>
+    <name>A</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>16</xmin>
+      <ymin>21</ymin>
+      <xmax>48</xmax>
+      <ymax>57</ymax>
+    </bndbox>
+  </object>
+</annotation>
