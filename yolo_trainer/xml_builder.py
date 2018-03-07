@@ -36,7 +36,7 @@ def write_xml(folder, img, objects, tl, br, savedir):
     xml_str = ET.tostring(annotation)
     root = etree.fromstring(xml_str)
     xml_str = etree.tostring(root, pretty_print=True)
-    save_path = os.path.join(savedir, img.name.replace('ppm', 'xml'))
+    save_path = os.path.join(savedir, img.name.replace('jpg', 'xml'))
     with open(save_path, 'wb') as temp_xml:
         temp_xml.write(xml_str)
 
@@ -48,9 +48,9 @@ if __name__ == '__main__':
     """
 
     folder = 'images'
-    img = [im for im in os.scandir('/home/apurvnit/datasets/gestures_test/Marcel-Train/' + sys.argv[1]) if '0001' in im.name][0]
-    objects = [sys.argv[1]]
+    img = [im for im in os.scandir('/home/apurvnit/Projects/hand_gest/yolo_trainer/images/')][0]
+    objects = 'hand'
     tl = [(10, 10)]
     br = [(100, 100)]
-    savedir = 'annotations_'+sys.argv[1]
+    savedir = 'annotations'
     write_xml(folder, img, objects, tl, br, savedir)

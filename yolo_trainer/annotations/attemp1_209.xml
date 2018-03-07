@@ -1,0 +1,22 @@
+<annotation>
+  <folder>/home/apurvnit/Projects/hand_gest/yolo_trainer/images</folder>
+  <filename>attemp1_209.jpg</filename>
+  <segmented>0</segmented>
+  <size>
+    <width>640</width>
+    <height>480</height>
+    <depth>3</depth>
+  </size>
+  <object>
+    <name>hand</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>83</xmin>
+      <ymin>202</ymin>
+      <xmax>289</xmax>
+      <ymax>435</ymax>
+    </bndbox>
+  </object>
+</annotation>

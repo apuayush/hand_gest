@@ -1,0 +1,10 @@
+<annotation>
+  <folder>/home/apurvnit/Projects/hand_gest/yolo_trainer/images</folder>
+  <filename>attemp1_5.jpg</filename>
+  <segmented>0</segmented>
+  <size>
+    <width>640</width>
+    <height>480</height>
+    <depth>3</depth>
+  </size>
+</annotation>

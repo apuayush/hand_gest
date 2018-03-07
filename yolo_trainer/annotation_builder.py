@@ -10,9 +10,9 @@ tl_list = []
 br_list = []
 object_list = []
 
-image_folder = '/home/apurvnit/datasets/gestures_test/Marcel-Train/' + sys.argv[1]
-save_dir = 'annotations_' + sys.argv[1]
-obj = sys.argv[1]
+image_folder = '/home/apurvnit/Projects/hand_gest/yolo_trainer/images'
+save_dir = 'annotations'
+obj = 'hand'
 
 print(obj)
 
