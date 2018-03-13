@@ -1,29 +1,45 @@
-from training.module import *
-from training.datahandler import *
+import cv2
+from darkflow.net.build import TFNet
+import numpy as np
+import time
 
-from Network import Network
+options = {
+    'model': '/home/apurvnit/Projects/darkflow/cfg/tiny-yolo-voc-1c.cfg',
+    'load': 9625,
+    'threshold': 0.1,
+    'gpu': 0.8
+}
 
-if __name__ == "__main__":
+tfnet = TFNet(options)
+colors = [tuple(255 * np.random.rand(3)) for _ in range(10)]
 
-    camera = cv2.VideoCapture(0)
+capture = cv2.VideoCapture(0)
 
+capture.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
+capture.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
 
-    while True:
-        ret_value, frame = camera.read()
-        frame = imutils.resize(frame, width=700)
+while True:
+    stime = time.time()
+    ret, frame = capture.read()
+    results = tfnet.return_predict(frame)
+    if ret:
+        for color, result in zip(colors, results):
+            tl = (result['topleft']['x'], result['topleft']['y'])
+            br = (result['bottomright']['x'], result['bottomright']['y'])
+            label = result['label']
+            confidence = result['confidence']
+            text = '{}: {:.0f}%'.format(label, confidence * 100)
+            frame = cv2.rectangle(frame, tl, br, color, 5)
+            frame = cv2.putText(
+                frame, text, tl, cv2.FONT_HERSHEY_COMPLEX, 1, (0, 0, 0), 2)
+        cv2.imshow('frame', frame)
+        print('FPS {:.1f}'.format(1 / (time.time() - stime)))
 
-        frame = cv2.flip(frame, 1)
-        clone = frame.copy()
+    keypress = cv2.waitKey(1) & 0xFF
 
-        (height, width) = frame.shape[:2]
+    # if the user pressed "q", then stop looping
+    if keypress == ord("q"):
+        break
 
-        # for right now
-        roi = frame
-
-        gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
-        gray = cv2.GaussianBlur(gray, (7, 7), 0)
-
-        cv2.drawContours(clone, [segmented + (right, top)], -1, (0, 0, 255))
-        fingers = count_fingers(thresholded, segmented)
-        cv2.putText(clone, str(fingers), (70, 45), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-        cv2.imshow("Thesholded", thresholded)
+capture.release()
+cv2.destroyAllWindows()
