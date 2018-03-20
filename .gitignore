@@ -2,4 +2,6 @@
 __pycache__
 *.h5
 yolo_trainer/images/*
-
+model.ckpt-200002.data-00000-of-00001
+*.meta
+*.pb
