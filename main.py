@@ -1,5 +1,6 @@
-from utils import detector_utils as detector_utils
+import utils.detector_utils as detector_utils
 import cv2
+from predict_gesture import *
 import matplotlib.pyplot as plt
 import tensorflow as tf
 import multiprocessing
