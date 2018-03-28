@@ -1,39 +1,66 @@
 import utils.detector_utils as detector_utils
 import cv2
-from predict_gesture import *
+from predict_gesture import GestureClassifier
 import matplotlib.pyplot as plt
 import tensorflow as tf
 import multiprocessing
+
 from multiprocessing import Queue, Pool
 import time
 import datetime
 
 frame_processed = 0
 
+gesture = GestureClassifier()
+
+print("comeback")
+called = False
+
+
 def worker(input_q, output_q, cap_params, frame_processed):
+    global called
+    if not called:
+        gesture.load_model()
+        called = True
+
     print(">> loading frozen model for worker")
     detection_graph, sess = detector_utils.load_inference_graph()
     sess = tf.Session(graph=detection_graph)
+    # gesture.load_model()
     while True:
         print("> ===== in worker loop, frame ", frame_processed)
         frame = input_q.get()
+
         if frame is not None:
             # actual detection
             boxes, scores = detector_utils.detect_objects(
                 frame, detection_graph, sess)
+            details = {
+                'boxes': boxes,
+                'scores': scores
+            }
             # draw bounding boxes
-            detector_utils.draw_box_on_image(
+            cropped_image = detector_utils.draw_box_on_image(
                 cap_params['num_hands_detect'], cap_params["score_thresh"], scores, boxes, cap_params['width']
                 , cap_params['height'], frame)
-            output_q.put(frame)
+
+            details['frame'] = frame
+            details['cropped_image'] = cropped_image
+
+            # gesture.predict()
+
+            output_q.put(details)
             frame_processed += 1
         else:
-            output_q.put(frame)
+            output_q.put({
+                'boxes': [],
+                'scores': 0.0,
+                'frame': frame
+            })
     sess.close()
 
 
 if __name__ == "__main__":
-
     cap_params = {'width': 640, 'height': 380}
     frame_processed = 0
 
@@ -66,12 +93,17 @@ if __name__ == "__main__":
         fram_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
         input_q.put(fram_rgb)
-        output_frame = output_q.get()
+        output_details = output_q.get()
 
-        output_frame = cv2.cvtColor(output_frame, cv2.COLOR_RGB2BGR)
+        output_frame = cv2.cvtColor(output_details['frame'], cv2.COLOR_RGB2BGR)
 
         cv2.imshow("hand tracking", output_frame)
-
+        # cv2.imwrite("test/img"+str(c)+".jpg", output_frame)
+        print(str(c)+'\t'+str(output_details['boxes']))
+        try:
+            cv2.imshow("cropped image",output_details['cropped_image'])
+        except:
+            pass
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
