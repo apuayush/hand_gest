@@ -49,7 +49,8 @@ def worker(input_q, output_q, cap_params, frame_processed):
                 , cap_params['height'], frame)
 
             if cropped_image is not None and c == 0:
-                ges, score = gesture.predict(cropped_image)
+                cropped_image = cv2.flip(cropped_image, 1)
+                ges, score = gesture.predict(cropped_image/255)
             print(ges, score)
             details['frame'] = frame
             details['cropped_image'] = cropped_image
@@ -61,7 +62,6 @@ def worker(input_q, output_q, cap_params, frame_processed):
         else:   
             output_q.put({
                 'boxes': [],
-                'scores': 0.0,
                 'frame': frame,
                 'ges': ges,
                 'score': score
@@ -86,7 +86,7 @@ if __name__ == "__main__":
     cap_params['score_thresh'] = 0.3
 
     # max number of hands we want to detect/track
-    cap_params['num_hands_detect'] = 2
+    cap_params['num_hands_detect'] = 1
 
     # num_workers = 5
 
