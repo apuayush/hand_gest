@@ -1,6 +1,8 @@
 import utils.detector_utils as detector_utils
 import cv2
-from predict_gesture import GestureClassifier
+from keras.models import model_from_json
+import numpy as np
+
 import matplotlib.pyplot as plt
 import tensorflow as tf
 import multiprocessing
@@ -11,17 +13,17 @@ import datetime
 
 frame_processed = 0
 
-gesture = GestureClassifier()
+# gesture = GestureClassifier()
 
 print("comeback")
 called = False
 
+def preprocess(img):
+    img = cv2.resize(img, (64, 64), interpolation=cv2.INTER_NEAREST).astype(np.float32)
+    # print(img.shape)
+    return img
 
 def worker(input_q, output_q, cap_params, frame_processed):
-    global called
-    if not called:
-        gesture.load_model()
-        called = True
 
     print(">> loading frozen model for worker")
     detection_graph, sess = detector_utils.load_inference_graph()
@@ -51,7 +53,7 @@ def worker(input_q, output_q, cap_params, frame_processed):
 
             output_q.put(details)
             frame_processed += 1
-        else:
+        else:   
             output_q.put({
                 'boxes': [],
                 'scores': 0.0,
@@ -61,6 +63,15 @@ def worker(input_q, output_q, cap_params, frame_processed):
 
 
 if __name__ == "__main__":
+    json_file = open('training/model.json', 'r')
+    loaded_model = json_file.read()
+    json_file.close()
+    model = model_from_json(loaded_model)
+    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+    model.load_weights('training/hand_detection_weights.h5')
+    print("completed loading model")
+
+
     cap_params = {'width': 640, 'height': 380}
     frame_processed = 0
 
@@ -86,8 +97,9 @@ if __name__ == "__main__":
         4, worker, (input_q, output_q, cap_params, frame_processed)
     )
 
+    ges, score = 'None', 0.0
+
     while True:
-        c += 1
         _, frame = cam.read()
         frame = cv2.flip(frame, 1)
         fram_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -97,13 +109,29 @@ if __name__ == "__main__":
 
         output_frame = cv2.cvtColor(output_details['frame'], cv2.COLOR_RGB2BGR)
 
-        cv2.imshow("hand tracking", output_frame)
-        # cv2.imwrite("test/img"+str(c)+".jpg", output_frame)
-        print(str(c)+'\t'+str(output_details['boxes']))
+        if c == 0 and output_details['cropped_image'] is not None:
+            cropped = preprocess(output_details['cropped_image'])
+            k = model.predict(np.array([cropped]))
+            score = max(k[0])
+            ges = chr(65 + list(k[0]).index(score))
+
+            # ges, score = output_details['gesture'].predict(output_details['cropped_image'])
+
         try:
-            cv2.imshow("cropped image",output_details['cropped_image'])
+            print(ges,score)
+            cv2.imshow("cropped image", output_details['cropped_image'])
         except:
             pass
+        print(c)
+        c = (c+1)%10
+
+        # cv2.imwrite("test/img"+str(c)+".jpg", output_frame)
+        # print(str(c)+'\t'+str(output_details['boxes']))
+
+        cv2.putText(output_frame, str(ges) + " - " + str(score), (70, 45), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+        cv2.imshow("hand tracking", output_frame)
+
+        c = (c + 1) % 10
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
